@@ -1,116 +1,124 @@
 var narp = require('node-arp');
-var NCMB = require("ncmb");
+var admin = require('firebase-admin');
 var keys = require('./keys.js');
 
-/////////////////////////////ニフクラの設定
-var application_key = keys.APPLICATION_KEY;
-var client_key = keys.CLIENT_KEY;
-var ncmb = new NCMB(application_key, client_key);
-var Arp = ncmb.DataStore("arp");
-var Person = ncmb.DataStore("person");
-var Send_list = ncmb.DataStore("send_list");
-var arp = new Arp();
-var person = new Person();
-var send_list = new Send_list();
+/////////////////////////////認証・初期化
+let serviceAccount = require(keys.SERVICE_ACCOUNT_PATH);
+admin.initializeApp({
+   credential: admin.credential.cert(serviceAccount)
+});
+let db = admin.firestore();
 
 
-setInterval(set_exist, 20000);
-
-function set_exist() {
-   //////////////////////////////arp ：とりあえず全員exsitにfalse入れる
-   Arp.fetchAll()
-      .then(function (arp) {
-         for (i = 0; i < arp.length; i++) {
-            arp[i].set("exist", "false")
-            arp[i].update();
-         }
-      })
 
 
-   ////////////////////////////////////arp: arpで拾ったmacadressの人はexistにtrue入れる
-   for (i = 1; i < 30; i++) {
-      narp.getMAC(keys.IPA + i, function (err, gotmac) {
-         if (!err) {
-            console.log(gotmac + " i=" + i);
-            try {
-               Arp.equalTo("mac", gotmac)
-                  .fetch()
-                  .then(function (gyo) {
-                     console.log("gyo");
-                     console.log(gyo);
-                     gyo.set("exist", "true")
-                     gyo.update();
-                  })
-            } catch (e) {
-               console.log(e);
+
+// do_arp().then(function (value) {
+//    console.log("value = " + value);
+//    set_exist_member();
+//    return;
+// }).then(function () {
+//    push_firebase();
+//    return;
+// })
+
+
+
+////////////////////////////////////arpで拾ったmacadressの人のexist_arpにtrueを入れる
+var members = {
+   "44:85:00:20:f0:5d": "高木pc",
+   "f0:9f:fc:3d:4d:f2": "高木android",
+   "44:85:00:1e:98:21": "大海1",
+   "00:28:f8:cf:d2:03": "川瀬pc",
+   "e4:9a:dc:0f:7e:6b": "大海2",
+   "3c:28:6d:fd:92:b9": "川瀬pixel",
+   "18:f1:d8:64:84:16": "峻吾携帯",
+   "00:28:f8:a5:b0:04": "峻吾pc",
+   "9c:5c:f9:36:82:69": "遼携帯",
+   "00:28:f8:a9:de:6d": "遼pc",
+   "44:91:60:5a:50:c8": "奥瀬android",
+   "00:28:f8:a9:32:92": "奥瀬pc",
+   "b4:86:55:86:2c:0f": "大誠huawei",
+   "00:28:f8:a5:b3:4c": "大誠pc",
+   "34:41:5d:c7:7f:ef": "小塚pc",
+   "b8:41:a4:aa:b1:c5": "たかひろ"
+}
+var got_macs = ["0", 0];
+var exist_members = [];
+
+//////////部屋におる人のmacアドレスを取得
+async function get_mac() {
+   return new Promise(function (resolve) {
+      console.log("get_mac");
+      var wakus = [];
+      for (var i = 1; i < 30; i++) {
+         wakus.push(i);
+      }
+      var promiseArray = [];
+
+      const do_arp = async i => {
+         narp.getMAC(keys.IPA + i, function (err, gotmac) {
+            if (!err) {
+               got_macs.push(gotmac);
+               console.log(gotmac);
+            }
+         });
+      }
+      // let i = 0;
+      // for await (let item of wakus) {
+      //    promiseArray.push(do_arp(i));
+      // }
+
+      // (async () => {
+      //    await Promise.all(promiseArray).then(function () {
+
+      //       console.log(promiseArray);
+      //       console.log("promise.all")
+      //    })
+
+      const testFunc = async () => {
+         await Promise.all(wakus.map(async item => await do_arp(item)))
+         console.log('done!')
+      };
+   })
+}
+
+/////////部屋におる人の名前を取得
+function set_exist_member() {
+   console.log("set_exist_memger");
+   return new Promise(function (resolve) {
+      for (var got_mac of got_macs) {
+         for (var member in members) {
+            if (got_mac == member) {
+               exist_members.push(members.member);
             }
          }
-      });
-   }
-   Arp.equalTo("userId", "0000")
-      .fetch()
-      .then(function (gyo) {
-         gyo.set("exist", "false")
-         gyo.update();
-      })
-
-
-   ///////////////////////////////////////////send_list: send_trueを全部falseにする
-   try {
-      Send_list.fetchAll()
-         .then(function (items) {
-            for (var i = 0; i < items.length; i++) {
-               items[i].set("send_true", "false")
-               items[i].update();
-            };
-         })
-   } catch (e) {
-      outputLog(e);
-   }
-
-
-   /////////////arp: なんか知らんけどレコードの一番下のexistの値に勝手にtrueが入るから強制的にfalseを入れる
-   Arp.equalTo("userId", "0000")
-      .fetch()
-      .then(function (item) {
-         item.set("exist", "false");
-         item.update();
-      })
-
-
-
-   ////////////////arp: exsit==trueのuserIdをsend_listに代入
-   Arp.equalTo("exist", "true")
-      .fetchAll()
-      .then(function (items) {
-         for (var i = 0; i < items.length; i++) {
-            var userId_list = items[i].userId;
-            set_send_true(userId_list);
-         }
-      })
-
-
-   ///////////person: exsit_room==trueのuserIdをsend_listに代入　
-   Person.equalTo("exist_room", "true")
-      .fetchAll()
-      .then(function (items) {
-         for (var i = 0; i < items.length; i++) {
-            var userId_list = items[i].userId;
-            set_send_true(userId_list);
-         }
-      })
-
-
-} ///set_exist()　終わり
-
-
-
-/////////////////////////////////////////関数
-function set_send_true(id) {
-   Send_list.equalTo("userId", id)
-      .fetch()
-      .then(function (item) {
-         item.set("send_true", "true");
-         item.update();
-      })
+      }
+      resolve();
+   })
 }
+
+//////////firebaseに置く
+function push_firebase() {
+   return new Promise(function (resolve) {
+      console.log("push_firebase");
+      db.collection('exist').doc('arp')
+         .update({
+            exist_arp: exist_members
+         });
+      resolve();
+   });
+}
+
+
+
+teiki();
+async function teiki() {
+   var value1 = await get_mac();
+   console.log("value1 = " + value1)
+   var value2 = await set_exist_member();
+   console.log("value2 = " + value2)
+   push_firebase();
+}
+
+// setInterval(set_arp_exist, 5000);
