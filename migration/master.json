@@ -1,0 +1,48 @@
+{
+   "results": [
+      {
+         "acl": {
+            "*": {
+               "read": true,
+               "write": true
+            }
+         },
+         "createDate": {
+            "__type": "Date",
+            "iso": "2019-09-03T02:31:42.534Z"
+         },
+         "updateDate": {
+            "__type": "Date",
+            "iso": "2019-09-03T14:22:28.390Z"
+         },
+         "hwid": "000002b868",
+         "wifiPswd": "avs5s67sg",
+         "keyword": "桃太郎",
+         "ssid": "algorismtaisou1114",
+         "field_name": "大誠の家",
+         "objectId": "nF8oKeWS2xmaS9Yn"
+      },
+      {
+         "acl": {
+            "*": {
+               "read": true,
+               "write": true
+            }
+         },
+         "createDate": {
+            "__type": "Date",
+            "iso": "2019-09-04T02:15:48.547Z"
+         },
+         "updateDate": {
+            "__type": "Date",
+            "iso": "2019-09-07T02:11:41.293Z"
+         },
+         "hwid": "012c669b82",
+         "field_name": "y-lab(遊橋研究室)",
+         "keyword": "よへいろ",
+         "ssid": "Buffalo-A-AC78 (High Speed)",
+         "wifiPswd": "yp7usyx66hp6p",
+         "objectId": "dRXL9WDMqhSqbGQm"
+      }
+   ]
+}
