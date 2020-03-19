@@ -79,4 +79,4 @@ async function teiki() {
    const value3 = push_firebase();
 }
 
-setInterval(teiki, 20000)
+setInterval(teiki, 300000);
