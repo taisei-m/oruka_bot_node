@@ -36,6 +36,7 @@ async function get_mac() {
       });
    })
    await Promise.all(promiseArray);
+   return;
 }
 
 
@@ -48,7 +49,7 @@ async function set_exist_member() {
          }
       }
    }
-   console.log(exist_members);
+   console.log("exist_members", exist_members);
 }
 
 
@@ -61,6 +62,9 @@ function push_firebase() {
       exist_hard += value + ", ";
    });
 
+   console.log("exist_hard", exist_hard)
+   console.log("exist_person", exist_person)
+
    db.collection('exist').doc('arp')
       .update({
          exist_arp: exist_members,
@@ -71,12 +75,17 @@ function push_firebase() {
 
 
 
-
 async function teiki() {
    members = keys.MEMBERS;
    const value1 = await get_mac();
    const value2 = await set_exist_member();
    const value3 = push_firebase();
+   
+   setTimeout(teiki, 120000);
 }
 
-setInterval(teiki, 300000);
+teiki();
+
+
+
+
