@@ -69,7 +69,8 @@ function push_firebase() {
       .update({
          exist_arp: exist_members,
          exist_hard: exist_hard,
-         exist_person: exist_person
+         exist_person: exist_person,
+         arp_time: admin.firestore.FieldValue.serverTimestamp()
       });
 }
 
