@@ -82,7 +82,7 @@ async function teiki() {
    const value2 = await set_exist_member();
    const value3 = push_firebase();
    
-   setTimeout(teiki, 120000);
+   setTimeout(teiki, 300000);
 }
 
 teiki();
