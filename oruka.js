@@ -11,12 +11,11 @@ let db = admin.firestore();
 
 
 ////////////////////////////////////////////////////////////
-var members;
-
+let members = keys.MEMBERS;
+let macs = [];
 
 ///////////////////////部屋におる人のmacアドレスを取得
 async function get_mac() {
-   macs = [];
    exist_members = [];
    let ids = new Array(30)
    ids.fill(0);
@@ -36,6 +35,7 @@ async function get_mac() {
       });
    })
    await Promise.all(promiseArray);
+   return;
 }
 
 
@@ -48,7 +48,7 @@ async function set_exist_member() {
          }
       }
    }
-   console.log(exist_members);
+   console.log("exist_members", exist_members);
 }
 
 
@@ -65,18 +65,27 @@ function push_firebase() {
       .update({
          exist_arp: exist_members,
          exist_hard: exist_hard,
-         exist_person: exist_person
+         exist_person: exist_person,
+         arp_time: admin.firestore.FieldValue.serverTimestamp()
       });
 }
 
 
 
-
 async function teiki() {
-   members = keys.MEMBERS;
+   let date = new Date().toString();
+   console.log(date);
+   macs = [];
    const value1 = await get_mac();
+   console.log(macs);
    const value2 = await set_exist_member();
    const value3 = push_firebase();
+   
+   setTimeout(teiki, 10000);
 }
 
-setInterval(teiki, 300000);
+teiki();
+
+
+
+
